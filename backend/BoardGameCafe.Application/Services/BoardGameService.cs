@@ -295,41 +295,53 @@ public class BoardGameService : IBoardGameService
             .ToList();
 
         var reused = Math.Min(dto.Quantity, damagedCopies.Count);
-        for (var i = 0; i < reused; i++)
-        {
-            damagedCopies[i].Status = CopyStatus.InStock;
-            _unitOfWork.BoardGameCopies.Update(damagedCopies[i]);
-        }
 
-        for (var i = reused; i < dto.Quantity; i++)
+        // 事务包裹：副本新增/损坏修复、库存更新、补货记录写入保证原子性，数据库异常时整体回滚（避免部分写入导致"提示成功但库存未变"）
+        _unitOfWork.BeginTransaction();
+        try
         {
-            var copyNo = $"{prefix}{nextSeq++:D3}";
-            _unitOfWork.BoardGameCopies.Add(new BoardGameCopy
+            for (var i = 0; i < reused; i++)
+            {
+                damagedCopies[i].Status = CopyStatus.InStock;
+                _unitOfWork.BoardGameCopies.Update(damagedCopies[i]);
+            }
+
+            for (var i = reused; i < dto.Quantity; i++)
+            {
+                var copyNo = $"{prefix}{nextSeq++:D3}";
+                _unitOfWork.BoardGameCopies.Add(new BoardGameCopy
+                {
+                    Id = Guid.NewGuid(),
+                    BoardGameId = id,
+                    CopyNumber = copyNo,
+                    Status = CopyStatus.InStock,
+                    CreatedAt = now
+                });
+            }
+
+            // 总库存只对真正新增的副本累加（复用的损坏副本编号已存在，只改变状态）
+            game.TotalStock += dto.Quantity - reused;
+            game.CurrentStock += dto.Quantity;
+            game.DamagedStock = Math.Max(0, game.DamagedStock - reused);
+            game.UpdatedAt = now;
+
+            _unitOfWork.BoardGames.Update(game);
+            _unitOfWork.RestockRecords.Add(new RestockRecord
             {
                 Id = Guid.NewGuid(),
                 BoardGameId = id,
-                CopyNumber = copyNo,
-                Status = CopyStatus.InStock,
+                Quantity = dto.Quantity,
+                Remark = dto.Remark,
                 CreatedAt = now
             });
+
+            _unitOfWork.Commit();
         }
-
-        // 总库存只对真正新增的副本累加（复用的损坏副本编号已存在，只改变状态）
-        game.TotalStock += dto.Quantity - reused;
-        game.CurrentStock += dto.Quantity;
-        game.DamagedStock = Math.Max(0, game.DamagedStock - reused);
-        game.UpdatedAt = now;
-
-        _unitOfWork.BoardGames.Update(game);
-        _unitOfWork.RestockRecords.Add(new RestockRecord
+        catch
         {
-            Id = Guid.NewGuid(),
-            BoardGameId = id,
-            Quantity = dto.Quantity,
-            Remark = dto.Remark,
-            CreatedAt = now
-        });
-        _unitOfWork.SaveChanges();
+            _unitOfWork.Rollback();
+            throw;
+        }
 
         return Task.CompletedTask;
     }

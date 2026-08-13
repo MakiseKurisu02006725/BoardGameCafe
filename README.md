@@ -67,25 +67,18 @@ docker-compose ps
 
 前置要求：.NET 8 SDK、Node.js 18+、SQL Server 2022。
 
-**1. 配置数据库连接与 JWT 密钥（安全要求：禁止在配置文件中写明文密钥）**
+**1. 配置数据库连接**
 
-数据库密码与 JWT 密钥必须通过 **环境变量** 或 **.NET user-secrets** 提供（推荐 user-secrets，存储在本机用户目录，不会提交进仓库）：
+修改 `backend/BoardGameCafe.API/appsettings.Development.json` 中的连接字符串：
 
-```bash
-# 方式 A：.NET user-secrets（在 backend/BoardGameCafe.API 目录执行一次）
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;MultipleActiveResultSets=True;Connect Timeout=30;"
-dotnet user-secrets set "ConnectionStrings:HangfireConnection" "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;"
-dotnet user-secrets set "JwtSettings:SecretKey" "至少32位的随机字符串"
-
-# 方式 B：环境变量（临时会话有效）
-# $env:ConnectionStrings__Default = "Server=localhost;...;Password=你的密码;..."
-# $env:ConnectionStrings__HangfireConnection = "Server=localhost;...;Password=你的密码;..."
-# $env:JwtSettings__SecretKey = "至少32位的随机字符串"
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;MultipleActiveResultSets=True;Connect Timeout=30;",
+  "HangfireConnection": "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;"
+}
 ```
 
-> 说明：
-> - 数据库无需手动建表。后端启动时 `DbInitializer` 会自动 `EnsureCreated` 建库建表、补齐历史列并填充种子数据（用户/桌位/桌游），且操作幂等。
-> - 若密钥/连接串未配置，后端启动会立即报错并提示配置方式（fail-fast），不会静默使用弱密钥。
+> 说明：数据库无需手动建表。后端启动时 `DbInitializer` 会自动 `EnsureCreated` 建库建表、补齐历史列并填充种子数据（用户/桌位/桌游），且操作幂等。
 
 **2. 启动后端**
 

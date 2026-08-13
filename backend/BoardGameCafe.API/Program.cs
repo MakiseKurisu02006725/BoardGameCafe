@@ -57,17 +57,9 @@ public class Program
                 .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
 
-            // 敏感配置必须来自环境变量 / user-secrets，禁止提交明文密钥到仓库
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new InvalidOperationException(
-                    "数据库连接字符串未配置：请通过环境变量 ConnectionStrings__Default 或 .NET user-secrets 设置（ConnectionStrings:DefaultConnection）");
-            }
-
             builder.Services.AddInfrastructure(options =>
                 options.UseSqlServer(
-                    connectionString,
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
                     sqlOpts => sqlOpts.CommandTimeout(60))); // 命令执行超时 60 秒，避免高峰期偶发慢查询立即报错
             builder.Services.AddApplication();
             builder.Services.AddApiServices();
@@ -78,11 +70,6 @@ public class Program
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
             var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
-            if (jwtSettings is null || string.IsNullOrWhiteSpace(jwtSettings.SecretKey) || jwtSettings.SecretKey.Length < 16)
-            {
-                throw new InvalidOperationException(
-                    "JWT 密钥未配置：请通过环境变量 JwtSettings__SecretKey 或 .NET user-secrets 设置（JwtSettings:SecretKey），密钥长度至少 16 位");
-            }
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

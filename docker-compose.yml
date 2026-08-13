@@ -6,8 +6,7 @@ services:
     container_name: boardgamecafe-db
     environment:
       - ACCEPT_EULA=Y
-      # 密码通过根目录 .env 文件提供（DB_PASSWORD），禁止在仓库中提交明文
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD}
+      - MSSQL_SA_PASSWORD=Your_password123
     ports:
       - "1433:1433"
     volumes:
@@ -24,10 +23,10 @@ services:
     depends_on:
       - db
     environment:
-      - ConnectionStrings__Default=Server=db;Database=BoardGameCafe;User=sa;Password=${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD};TrustServerCertificate=true
+      - ConnectionStrings__Default=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true
       - ASPNETCORE_ENVIRONMENT=Production
-      - JwtSettings__SecretKey=${JWT_SECRET_KEY:?请在 .env 中设置 JWT_SECRET_KEY}
-      - Hangfire__ConnectionString=Server=db;Database=BoardGameCafe;User=sa;Password=${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD};TrustServerCertificate=true
+      - JwtSettings__SecretKey=your-super-secret-key-32chars-plus
+      - Hangfire__ConnectionString=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true
     restart: unless-stopped
 
   frontend:

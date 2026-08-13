@@ -597,7 +597,12 @@ async function handleRestock() {
     })
     ElMessage.success(`补货成功，新增库存 ${restockForm.quantity} 件`)
     resetRestockForm()
-    fetchList()
+    // 等待列表刷新成功，避免提示成功后界面仍展示旧库存
+    try {
+      await fetchList()
+    } catch {
+      ElMessage.warning('补货已保存，但列表刷新失败，请手动刷新页面')
+    }
   } catch (error) {
     ElMessage.error(getErrorMessage(error, '补货失败'))
   } finally {
