@@ -1,26 +1,28 @@
 <template>
   <div class="member-list-page">
     <SearchBar :initial-values="searchInitial" @search="handleSearch" @reset="handleReset">
-      <el-form-item label="关键词">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="手机号/昵称"
-          clearable
-          style="width: 200px"
-        />
-      </el-form-item>
-      <el-form-item label="等级">
-        <el-select
-          v-model="searchForm.level"
-          placeholder="全部等级"
-          clearable
-          style="width: 160px"
-        >
-          <el-option label="青铜" :value="1" />
-          <el-option label="白银" :value="2" />
-          <el-option label="黄金" :value="3" />
-        </el-select>
-      </el-form-item>
+      <template #default="{ form }">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="form.keyword"
+            placeholder="手机号/昵称"
+            clearable
+            style="width: 200px"
+          />
+        </el-form-item>
+        <el-form-item label="等级">
+          <el-select
+            v-model="form.level"
+            placeholder="全部等级"
+            clearable
+            style="width: 160px"
+          >
+            <el-option label="青铜" :value="1" />
+            <el-option label="白银" :value="2" />
+            <el-option label="黄金" :value="3" />
+          </el-select>
+        </el-form-item>
+      </template>
     </SearchBar>
 
     <div class="page-toolbar">

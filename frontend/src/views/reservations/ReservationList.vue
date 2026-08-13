@@ -6,7 +6,7 @@
 
     <SearchBar
       ref="searchBarRef"
-      :initial-values="searchForm"
+      :initial-values="searchInitial"
       @search="handleSearch"
       @reset="handleReset"
     >
@@ -213,11 +213,14 @@ const submitting = ref(false)
 const dialogVisible = ref(false)
 const tableData = ref([])
 
-const searchForm = reactive({
+// 初始值使用独立常量对象：避免 SearchBar 重置时被已输入值污染
+const searchInitial = {
   status: '',
   dateRange: [],
   keyword: ''
-})
+}
+
+const searchForm = reactive({ ...searchInitial })
 
 const pagination = reactive({
   total: 0,
@@ -348,12 +351,14 @@ function fetchData() {
   })
 }
 
-function handleSearch() {
+function handleSearch(values) {
+  Object.assign(searchForm, values || {})
   pagination.pageIndex = 1
   fetchData()
 }
 
-function handleReset() {
+function handleReset(values) {
+  Object.assign(searchForm, values || searchInitial)
   pagination.pageIndex = 1
   fetchData()
 }

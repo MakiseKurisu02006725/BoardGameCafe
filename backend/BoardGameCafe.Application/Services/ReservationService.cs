@@ -50,6 +50,29 @@ public class ReservationService : IReservationService
             query = query.Where(r => r.Status == queryParams.Status.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(queryParams.Keyword))
+        {
+            var kw = queryParams.Keyword.Trim();
+            // 会员昵称匹配 → 会员Id集合
+            var nickMemberIds = _unitOfWork.Members.Find(m => m.NickName.Contains(kw))
+                .Select(m => m.Id)
+                .ToHashSet();
+            // 会员手机号匹配（手机号存于 User 表，经 Member.UserId 关联）→ 会员Id集合
+            var phoneUserIds = _unitOfWork.Users
+                .Find(u => u.Phone != null && u.Phone.Contains(kw))
+                .Select(u => u.Id)
+                .ToHashSet();
+            var phoneMemberIds = _unitOfWork.Members.GetAll()
+                .Where(m => phoneUserIds.Contains(m.UserId))
+                .Select(m => m.Id);
+            nickMemberIds.UnionWith(phoneMemberIds);
+
+            // 关键词匹配：联系电话 或 会员昵称/手机号
+            query = query.Where(r =>
+                r.ContactPhone.Contains(kw) ||
+                nickMemberIds.Contains(r.MemberId));
+        }
+
         if (queryParams.MemberId.HasValue)
         {
             query = query.Where(r => r.MemberId == queryParams.MemberId.Value);

@@ -48,7 +48,21 @@ public class MemberService : IMemberService
 
         if (!string.IsNullOrEmpty(queryParams.Keyword))
         {
-            allMembers = allMembers.Where(m => m.NickName.Contains(queryParams.Keyword));
+            var kw = queryParams.Keyword.Trim();
+            // 手机号匹配（手机号存于 User 表，经 Member.UserId 关联）→ 会员Id集合
+            var phoneUserIds = _unitOfWork.Users
+                .Find(u => u.Phone != null && u.Phone.Contains(kw))
+                .Select(u => u.Id)
+                .ToHashSet();
+            var phoneMemberIds = _unitOfWork.Members.GetAll()
+                .Where(m => phoneUserIds.Contains(m.UserId))
+                .Select(m => m.Id)
+                .ToHashSet();
+
+            // 昵称模糊匹配 或 手机号匹配
+            allMembers = allMembers.Where(m =>
+                m.NickName.Contains(kw) ||
+                phoneMemberIds.Contains(m.Id));
         }
 
         var totalCount = allMembers.Count();
