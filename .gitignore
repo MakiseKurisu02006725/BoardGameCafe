@@ -1,0 +1,44 @@
+# ===== Visual Studio / IDE =====
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ===== .NET 构建产物 =====
+bin/
+obj/
+*.dll
+*.pdb
+
+# ===== 前端构建产物与依赖 =====
+node_modules/
+dist/
+
+# ===== 运行日志 =====
+Logs/
+logs/
+*.log
+
+# ===== 敏感配置（密钥走环境变量 / .NET user-secrets，禁止提交） =====
+.env
+.env.*
+!.env.example
+
+# ===== 内部文档（禁止上传仓库） =====
+PROJECT_GUIDE.md
+
+# ===== 系统文件 =====
+Thumbs.db
+.DS_Store
+
+# ===== 精确覆盖后端各项目构建产物 =====
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+
+# ===== 敏感文件兜底 =====
+*.env
+.env.*
+!*.env.example

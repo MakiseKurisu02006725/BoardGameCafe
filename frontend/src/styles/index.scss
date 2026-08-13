@@ -1,0 +1,409 @@
+:root {
+  --bgc-primary: #{$primary-color};
+  --bgc-success: #{$success-color};
+  --bgc-warning: #{$warning-color};
+  --bgc-danger: #{$danger-color};
+  --bgc-info: #{$info-color};
+  --bgc-page: #{$bg-color-page};
+  --bgc-container: #{$bg-color-white};
+  --text-primary: #{$text-primary};
+  --text-regular: #{$text-regular};
+  --text-secondary: #{$text-secondary};
+  --border-color: #{$border-base};
+  --border-radius: #{$border-radius-base};
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  font-size: $font-size-base;
+  line-height: 1.5;
+  color: $text-primary;
+  background-color: $bg-color-page;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: $primary-dark;
+  }
+}
+
+// Element Plus 主题覆盖
+.el-button--primary {
+  --el-button-bg-color: #{$primary-color};
+  --el-button-border-color: #{$primary-color};
+  --el-button-hover-bg-color: #{$primary-dark};
+  --el-button-hover-border-color: #{$primary-dark};
+}
+
+.el-menu--vertical {
+  --el-menu-bg-color: #{$bg-color-white};
+}
+
+// 组件风格统一：卡片/弹窗/表格保持一致的圆角、边框与阴影
+.el-card {
+  border-radius: 8px;
+  border: 1px solid $border-lighter;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.el-card.is-always-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.el-dialog {
+  border-radius: 10px;
+}
+
+.el-table {
+  font-size: 13px;
+
+  th.el-table__cell {
+    background-color: $bg-color;
+    color: $text-regular;
+    font-weight: 600;
+  }
+}
+
+.el-button {
+  border-radius: 4px;
+}
+
+// Flex 布局类
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-around {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+// 间距类
+.mt-4 {
+  margin-top: $spacing-xs;
+}
+
+.mt-8 {
+  margin-top: $spacing-sm;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.mt-12 {
+  margin-top: $spacing-md;
+}
+
+.mt-16 {
+  margin-top: $spacing-lg;
+}
+
+.mt-20 {
+  margin-top: $spacing-xl;
+}
+
+.mt-24 {
+  margin-top: $spacing-2xl;
+}
+
+.mt-32 {
+  margin-top: $spacing-3xl;
+}
+
+.mb-4 {
+  margin-bottom: $spacing-xs;
+}
+
+.mb-8 {
+  margin-bottom: $spacing-sm;
+}
+
+.mb-12 {
+  margin-bottom: $spacing-md;
+}
+
+.mb-16 {
+  margin-bottom: $spacing-lg;
+}
+
+.mb-20 {
+  margin-bottom: $spacing-xl;
+}
+
+.mb-24 {
+  margin-bottom: $spacing-2xl;
+}
+
+.ml-4 {
+  margin-left: $spacing-xs;
+}
+
+.ml-8 {
+  margin-left: $spacing-sm;
+}
+
+.ml-12 {
+  margin-left: $spacing-md;
+}
+
+.ml-16 {
+  margin-left: $spacing-lg;
+}
+
+.mr-4 {
+  margin-right: $spacing-xs;
+}
+
+.mr-8 {
+  margin-right: $spacing-sm;
+}
+
+.mr-12 {
+  margin-right: $spacing-md;
+}
+
+.mr-16 {
+  margin-right: $spacing-lg;
+}
+
+.p-4 {
+  padding: $spacing-xs;
+}
+
+.p-8 {
+  padding: $spacing-sm;
+}
+
+.p-12 {
+  padding: $spacing-md;
+}
+
+.p-16 {
+  padding: $spacing-lg;
+}
+
+.p-20 {
+  padding: $spacing-xl;
+}
+
+.p-24 {
+  padding: $spacing-2xl;
+}
+
+// 文本类
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+
+.text-success {
+  color: $success-color;
+}
+
+.text-warning {
+  color: $warning-color;
+}
+
+.text-danger {
+  color: $danger-color;
+}
+
+.text-info {
+  color: $info-color;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.font-12 {
+  font-size: $font-size-extra-small;
+}
+
+.font-13 {
+  font-size: $font-size-small;
+}
+
+.font-14 {
+  font-size: $font-size-base;
+}
+
+.font-16 {
+  font-size: $font-size-medium;
+}
+
+.font-18 {
+  font-size: $font-size-large;
+}
+
+.font-20 {
+  font-size: $font-size-extra-large;
+}
+
+// 页面布局基础样式
+.page-container {
+  width: 100%;
+  height: 100%;
+  padding: $spacing-lg;
+  box-sizing: border-box;
+}
+
+.page-header {
+  padding: $spacing-lg $spacing-xl;
+  background-color: $bg-color-white;
+  border-radius: $border-radius-base;
+  margin-bottom: $spacing-lg;
+  box-shadow: $box-shadow-light;
+}
+
+.page-content {
+  background-color: $bg-color-white;
+  border-radius: $border-radius-base;
+  padding: $spacing-xl;
+  box-shadow: $box-shadow-light;
+  min-height: calc(100% - 80px);
+}
+
+.card-wrapper {
+  background-color: $bg-color-white;
+  border-radius: $border-radius-base;
+  padding: $spacing-xl;
+  box-shadow: $box-shadow-light;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: $border-lighter;
+  border-radius: $border-radius-round;
+
+  &:hover {
+    background-color: $border-light;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}

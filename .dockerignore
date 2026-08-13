@@ -1,0 +1,42 @@
+# .NET
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/publish/
+
+# Node
+**/node_modules/
+**/dist/
+**/.npm/
+
+# Git
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# IDE
+**/.vscode/
+**/.vs/
+**/.idea/
+**/*.sln.docstates
+**/*.VC.db
+
+# Logs
+**/logs/
+**/*.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Config overrides
+**/appsettings.Local.json
+**/appsettings.*.json
+
+# OS
+Thumbs.db
+.DS_Store
+**/*.swp
+**/*.swo
