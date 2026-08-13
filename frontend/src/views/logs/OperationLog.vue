@@ -129,6 +129,7 @@ import { useUserStore } from '@/store/modules/user'
 import SearchBar from '@/components/SearchBar/index.vue'
 import DataTable from '@/components/DataTable/index.vue'
 import * as logApi from '@/api/log'
+import * as userApi from '@/api/user'
 
 const searchBarRef = ref(null)
 const loading = ref(false)
@@ -154,12 +155,20 @@ const pagination = reactive({
   pageSize: 20
 })
 
-const userOptions = ref([
-  { id: 1, userName: 'admin' },
-  { id: 2, userName: 'manager01' },
-  { id: 3, userName: 'cashier01' },
-  { id: 4, userName: 'cashier02' }
-])
+// 操作用户下拉：从后端加载真实用户（id 为 GUID），替换硬编码假 ID（假 ID 传参导致后端 Guid 绑定 400）
+const userOptions = ref([])
+
+async function loadUserOptions() {
+  try {
+    const res = await userApi.getList({ pageIndex: 1, pageSize: 1000 })
+    const list = res.items || res.list || res.data || []
+    userOptions.value = (list || [])
+      .map(u => ({ id: u.id, userName: u.userName || u.UserName || '' }))
+      .filter(u => u.id && u.userName)
+  } catch {
+    // 加载失败时下拉为空，不影响列表查询
+  }
+}
 
 const actionTypeOptions = [
   { value: 'LOGIN', label: '登录' },
@@ -419,6 +428,7 @@ function handlePaginationChange(val) {
 onMounted(() => {
   fetchData()
   loadSettings()
+  loadUserOptions()
 })
 </script>
 

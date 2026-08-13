@@ -35,10 +35,10 @@
             style="width: 280px"
           />
         </el-form-item>
-        <el-form-item label="会员ID">
+        <el-form-item label="手机号">
           <el-input
-            v-model="form.memberId"
-            placeholder="会员ID"
+            v-model="form.memberPhone"
+            placeholder="会员手机号"
             clearable
             style="width: 160px"
           />
@@ -255,7 +255,7 @@ const searchInitial = {
   keyword: '',
   status: '',
   dateRange: [],
-  memberId: ''
+  memberPhone: ''
 }
 
 const searchForm = reactive({ ...searchInitial })
@@ -355,7 +355,7 @@ function fetchData() {
     pageSize: pagination.pageSize,
     keyword: searchForm.keyword || undefined,
     status: mapStatusToEnum(searchForm.status) || undefined,
-    memberId: searchForm.memberId || undefined,
+    memberPhone: searchForm.memberPhone || undefined,
     dateFrom: searchForm.dateRange?.[0] || undefined,
     dateTo: searchForm.dateRange?.[1] || undefined
   }

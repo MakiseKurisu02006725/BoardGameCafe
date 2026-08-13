@@ -350,12 +350,14 @@ function fetchData() {
   })
 }
 
-function handleSearch() {
+function handleSearch(values) {
+  Object.assign(searchForm, values || {})
   pagination.pageIndex = 1
   fetchData()
 }
 
-function handleReset() {
+function handleReset(values) {
+  Object.assign(searchForm, values || searchInitial)
   pagination.pageIndex = 1
   fetchData()
 }

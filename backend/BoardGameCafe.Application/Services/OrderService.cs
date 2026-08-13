@@ -44,6 +44,12 @@ public class OrderService : IOrderService
 
         var query = _unitOfWork.Orders.GetAll().AsQueryable();
 
+        if (!string.IsNullOrWhiteSpace(queryParams.Keyword))
+        {
+            var kw = queryParams.Keyword.Trim();
+            query = query.Where(o => o.OrderNo.Contains(kw));
+        }
+
         if (queryParams.Status.HasValue)
         {
             query = query.Where(o => o.Status == queryParams.Status.Value);
@@ -59,9 +65,19 @@ public class OrderService : IOrderService
             query = query.Where(o => o.CreatedAt <= queryParams.DateTo.Value);
         }
 
-        if (queryParams.MemberId.HasValue)
+        if (!string.IsNullOrWhiteSpace(queryParams.MemberPhone))
         {
-            query = query.Where(o => o.MemberId == queryParams.MemberId.Value);
+            var phone = queryParams.MemberPhone.Trim();
+            // 手机号存于会员关联的用户表：先查匹配手机号的用户Id，再取对应会员Id集合，最后过滤订单
+            var userIds = _unitOfWork.Users
+                .Find(u => u.Phone != null && u.Phone.Contains(phone))
+                .Select(u => u.Id)
+                .ToHashSet();
+            var memberIds = _unitOfWork.Members.GetAll()
+                .Where(m => userIds.Contains(m.UserId))
+                .Select(m => m.Id)
+                .ToHashSet();
+            query = query.Where(o => o.MemberId.HasValue && memberIds.Contains(o.MemberId.Value));
         }
 
         var totalCount = query.Count();

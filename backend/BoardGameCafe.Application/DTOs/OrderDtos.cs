@@ -188,7 +188,7 @@ public class OrderBoardGameDto
 public class OrderQueryParams : PaginationParams
 {
     /// <summary>
-    /// 关键词搜索（订单编号/会员名称）
+    /// 关键词搜索（订单编号模糊查询）
     /// </summary>
     public string? Keyword { get; set; }
 
@@ -208,9 +208,9 @@ public class OrderQueryParams : PaginationParams
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    /// 会员Id筛选
+    /// 会员手机号筛选（模糊匹配）
     /// </summary>
-    public Guid? MemberId { get; set; }
+    public string? MemberPhone { get; set; }
 }
 
 /// <summary>
