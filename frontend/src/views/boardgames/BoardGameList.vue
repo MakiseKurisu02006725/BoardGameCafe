@@ -600,6 +600,9 @@ async function handleRestock() {
     // 等待列表刷新成功，避免提示成功后界面仍展示旧库存
     try {
       await fetchList()
+      // 同步编辑弹窗表单的总库存（补货可能仅修复损坏、总库存不变，以服务端返回为准）
+      const fresh = tableData.value.find((row) => row.id === currentGameId.value)
+      if (fresh) boardgameForm.totalStock = fresh.totalStock
     } catch {
       ElMessage.warning('补货已保存，但列表刷新失败，请手动刷新页面')
     }

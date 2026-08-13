@@ -280,6 +280,17 @@ public class BoardGameService : IBoardGameService
             throw new BusinessException("补货数量必须大于0");
         }
 
+        // 补货上限：最多补满总库存（当前可用缺口），禁止超出总库存无限新增
+        var maxQuantity = game.TotalStock - game.CurrentStock;
+        if (maxQuantity <= 0)
+        {
+            throw new BusinessException("当前库存已满，无需补货");
+        }
+        if (dto.Quantity > maxQuantity)
+        {
+            throw new BusinessException($"补货数量最多 {maxQuantity} 件（补满总库存）");
+        }
+
         var now = DateTime.Now;
         var prefix = PinyinHelper.GetInitials(game.Name);
         var usedNumbers = _unitOfWork.BoardGameCopies
@@ -288,25 +299,24 @@ public class BoardGameService : IBoardGameService
             .ToList();
         var nextSeq = ParseCopyMaxSeq(usedNumbers, prefix) + 1;
 
-        // 优先修复损坏副本（复用已损坏编号），不足时新建副本
+        // 优先修复损坏副本（补货补足报损件），不足部分再新建在库副本
         var damagedCopies = _unitOfWork.BoardGameCopies
             .Find(c => c.BoardGameId == id && c.Status == CopyStatus.Damaged)
             .OrderBy(c => c.CopyNumber)
             .ToList();
+        var repair = Math.Min(dto.Quantity, damagedCopies.Count);
 
-        var reused = Math.Min(dto.Quantity, damagedCopies.Count);
-
-        // 事务包裹：副本新增/损坏修复、库存更新、补货记录写入保证原子性，数据库异常时整体回滚（避免部分写入导致"提示成功但库存未变"）
+        // 事务包裹：副本修复/新增、库存更新、补货记录写入保证原子性，数据库异常时整体回滚（避免部分写入导致"提示成功但库存未变"）
         _unitOfWork.BeginTransaction();
         try
         {
-            for (var i = 0; i < reused; i++)
+            for (var i = 0; i < repair; i++)
             {
                 damagedCopies[i].Status = CopyStatus.InStock;
                 _unitOfWork.BoardGameCopies.Update(damagedCopies[i]);
             }
 
-            for (var i = reused; i < dto.Quantity; i++)
+            for (var i = repair; i < dto.Quantity; i++)
             {
                 var copyNo = $"{prefix}{nextSeq++:D3}";
                 _unitOfWork.BoardGameCopies.Add(new BoardGameCopy
@@ -319,10 +329,10 @@ public class BoardGameService : IBoardGameService
                 });
             }
 
-            // 总库存只对真正新增的副本累加（复用的损坏副本编号已存在，只改变状态）
-            game.TotalStock += dto.Quantity - reused;
+            // 补货：可用库存增加补货数量；修复的损坏件从损坏库存移除；仅新建件增加总库存（补满不超总库存）
+            game.TotalStock += dto.Quantity - repair;
             game.CurrentStock += dto.Quantity;
-            game.DamagedStock = Math.Max(0, game.DamagedStock - reused);
+            game.DamagedStock = Math.Max(0, game.DamagedStock - repair);
             game.UpdatedAt = now;
 
             _unitOfWork.BoardGames.Update(game);
