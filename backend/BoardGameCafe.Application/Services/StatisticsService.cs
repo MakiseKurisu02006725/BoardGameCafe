@@ -110,19 +110,35 @@ public class StatisticsService : IStatisticsService
     /// <inheritdoc />
     public async Task<List<PopularGameDto>> GetPopularGames(int topN = 10)
     {
-        // 只读统计查询：AsNoTracking 不跟踪实体；分组聚合由数据库端执行，避免全表加载到内存
-        return await _db.OrderItems
+        // 开台时游玩桌游记录写入 OrderBoardGames 中间表（OrderItems 仅记录台费/其他费用），
+        // 因此按订单-桌游关联表统计使用频次，并关联桌游表取名称
+        var gameIds = _db.BoardGames
             .AsNoTracking()
-            .Where(i => i.Type == OrderItemType.GameLease)
-            .GroupBy(i => i.Name)
-            .Select(g => new PopularGameDto
-            {
-                Name = g.Key,
-                Count = g.Sum(i => i.Quantity)
-            })
-            .OrderByDescending(g => g.Count)
+            .Where(g => !g.IsDeleted)
+            .Select(g => g.Id)
+            .ToList();
+        var nameMap = _db.BoardGames
+            .AsNoTracking()
+            .Where(g => !g.IsDeleted)
+            .ToDictionary(g => g.Id, g => g.Name);
+
+        var grouped = await _db.OrderBoardGames
+            .AsNoTracking()
+            .Where(obg => gameIds.Contains(obg.BoardGameId))
+            .GroupBy(obg => obg.BoardGameId)
+            .Select(g => new { BoardGameId = g.Key, Count = g.Sum(x => x.Quantity) })
+            .OrderByDescending(x => x.Count)
             .Take(topN)
             .ToListAsync();
+
+        return grouped
+            .Where(x => nameMap.TryGetValue(x.BoardGameId, out _))
+            .Select(x => new PopularGameDto
+            {
+                Name = nameMap[x.BoardGameId],
+                Count = x.Count
+            })
+            .ToList();
     }
 
     /// <inheritdoc />

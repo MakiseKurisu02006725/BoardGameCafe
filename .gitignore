@@ -1,44 +1,78 @@
-# ===== Visual Studio / IDE =====
+# ============================================================
+# .gitignore - 桌游馆管理系统（BoardGameCafe）
+# 分类：IDE/系统 / 编译产物 / 日志缓存 / 本地配置 / 审计垃圾
+# 注意：本文件规则禁止使用"行尾注释"（会致规则失效）
+# ============================================================
+
+# ---------- 1. IDE / 编辑器 / 系统临时文件 ----------
 .vs/
 .vscode/
+.idea/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
-
-# ===== .NET 构建产物 =====
-bin/
-obj/
-*.dll
-*.pdb
-
-# ===== 前端构建产物与依赖 =====
-node_modules/
-dist/
-
-# ===== 运行日志 =====
-Logs/
-logs/
-*.log
-
-# ===== 敏感配置（密钥走环境变量 / .NET user-secrets，禁止提交） =====
-.env
-.env.*
-!.env.example
-
-# ===== 内部文档（禁止上传仓库） =====
-PROJECT_GUIDE.md
-
-# ===== 系统文件 =====
+*.swp
+*.swo
+desktop.ini
 Thumbs.db
 .DS_Store
 
-# ===== 精确覆盖后端各项目构建产物 =====
+# ---------- 2. .NET 编译产物 ----------
+bin/
+obj/
 backend/**/bin/
 backend/**/obj/
 backend/**/*.user
+*.dll
+*.pdb
+publish/
+backend/**/publish/
 
-# ===== 敏感文件兜底 =====
-*.env
+# ---------- 3. 前端构建产物与依赖 ----------
+node_modules/
+dist/
+frontend/dist/
+.vite/
+.eslintcache
+*.tsbuildinfo
+
+# Vite 插件自动生成（启动时自动重建，勿入库）
+frontend/src/auto-imports.d.ts
+frontend/src/components.d.ts
+
+# ---------- 4. 运行日志 / 缓存 / 备份 / 上传 ----------
+*.log
+*.log.*
+backend/BoardGameCafe.API/Logs/
+uploads/
+*.bak
+*.dump
+*.sql.bak
+*.tgz
+.npm/
+
+# ---------- 5. 环境变量（本地生效，模板除外） ----------
+.env
 .env.*
+!.env.example
+*.env
 !*.env.example
+
+# ---------- 6. 本地生效配置（含密钥/密码，模板与示例除外） ----------
+backend/BoardGameCafe.API/appsettings.json
+backend/BoardGameCafe.API/appsettings.Development.json
+backend/BoardGameCafe.API/appsettings.Local.json
+*.local.json
+
+# 模板 / 示例配置允许提交（新环境据此复制生成真实配置）
+!backend/BoardGameCafe.API/appsettings.template.json
+!.env.example
+
+# ---------- 7. 内部文档（禁止上传仓库） ----------
+PROJECT_GUIDE.md
+
+# ---------- 8. 审计发现的项目内构建垃圾 ----------
+backend/build-log.txt
+backend/build2.txt
+backend/ok.txt
