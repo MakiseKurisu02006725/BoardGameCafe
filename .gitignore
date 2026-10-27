@@ -67,6 +67,7 @@ backend/BoardGameCafe.API/appsettings.Local.json
 
 # 模板 / 示例配置允许提交（新环境据此复制生成真实配置）
 !backend/BoardGameCafe.API/appsettings.template.json
+!backend/BoardGameCafe.API/appsettings.Example.json
 !.env.example
 
 # ---------- 7. 内部文档（禁止上传仓库） ----------

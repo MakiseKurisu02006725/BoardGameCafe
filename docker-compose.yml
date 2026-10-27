@@ -23,10 +23,14 @@ services:
     depends_on:
       - db
     environment:
-      - ConnectionStrings__Default=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true
       - ASPNETCORE_ENVIRONMENT=Production
-      - JwtSettings__SecretKey=your-super-secret-key-32chars-plus
-      - Hangfire__ConnectionString=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true
+      # 连接字符串键名必须与代码 GetConnectionString("DefaultConnection") / ("HangfireConnection") 完全一致
+      - ConnectionStrings__DefaultConnection=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true;MultipleActiveResultSets=True
+      - ConnectionStrings__HangfireConnection=Server=db;Database=BoardGameCafe;User=sa;Password=Your_password123;TrustServerCertificate=true
+      # JWT 的 Issuer / Audience 是 Token 校验必填项，缺省会导致登录后令牌校验失败
+      - JwtSettings__SecretKey=your-super-secret-key-32chars-plus-change-me
+      - JwtSettings__Issuer=BoardGameCafe
+      - JwtSettings__Audience=BoardGameCafeUsers
     restart: unless-stopped
 
   frontend:

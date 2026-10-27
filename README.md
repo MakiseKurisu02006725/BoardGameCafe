@@ -49,6 +49,8 @@
 
 前置要求：Docker + Docker Compose。
 
+> 全新 clone 后无需任何手工配置：数据库连接串、JWT 密钥、Issuer/Audience 均已由 `docker-compose.yml` 以环境变量注入，首次启动会自动建库建表并灌入种子数据。
+
 ```bash
 cd BoardGameCafe
 docker-compose up -d
@@ -67,18 +69,21 @@ docker-compose ps
 
 前置要求：.NET 8 SDK、Node.js 18+、SQL Server 2022。
 
-**1. 配置数据库连接**
+**1. 生成配置文件（含数据库连接串）**
 
-修改 `backend/BoardGameCafe.API/appsettings.Development.json` 中的连接字符串：
+出于安全考虑，仓库不提交真实配置 `appsettings.json`（内含数据库密码），需从示例文件复制一份：
 
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;MultipleActiveResultSets=True;Connect Timeout=30;",
-  "HangfireConnection": "Server=localhost;Database=BoardGameCafe;User Id=sa;Password=你的密码;TrustServerCertificate=true;"
-}
+```bash
+# Windows（在项目根目录执行）
+copy backend\BoardGameCafe.API\appsettings.Example.json backend\BoardGameCafe.API\appsettings.json
+
+# macOS / Linux
+cp backend/BoardGameCafe.API/appsettings.Example.json backend/BoardGameCafe.API/appsettings.json
 ```
 
-> 说明：数据库无需手动建表。后端启动时 `DbInitializer` 会自动 `EnsureCreated` 建库建表、补齐历史列并填充种子数据（用户/桌位/桌游），且操作幂等。
+然后打开 `backend/BoardGameCafe.API/appsettings.json`，把连接串里的 `Password=Your_password123` 改成你本机 SQL Server 的 sa 密码（`DefaultConnection` 和 `HangfireConnection` 共两处），其余不用改。
+
+> 说明：数据库无需手动建库建表。后端启动时 `DbInitializer` 会自动 `EnsureCreated` 建库建表、补齐历史列并填充种子数据（用户/桌位/桌游），且操作幂等，重复启动不会重复插入。
 
 **2. 启动后端**
 
@@ -98,6 +103,8 @@ npm run dev
 ```
 
 前端启动后访问 http://localhost:5173（开发环境 API 地址为 `/api`，由 Vite 代理到 5000 端口）。
+
+> 可选：如需自定义接口地址或页面标题，先执行 `copy .env.example .env.development`（macOS/Linux 用 `cp .env.example .env.development`）再修改。不创建也能正常运行。
 
 ## 四、使用方法
 
