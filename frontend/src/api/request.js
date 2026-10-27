@@ -64,8 +64,8 @@ async function refreshAccessToken() {
     if (data?.accessToken) {
       userStore.token = data.accessToken
       userStore.refreshToken = data.refreshToken
-      localStorage.setItem('token', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
+      sessionStorage.setItem('token', data.accessToken)
+      sessionStorage.setItem('refreshToken', data.refreshToken)
       // 通知等待的请求
       pendingRequests.forEach(cb => cb.resolve(data.accessToken))
       pendingRequests = []
@@ -188,8 +188,8 @@ async function handle401Error(config) {
     userStore.rolesLoaded = false
     userStore.routes = []
 
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('refreshToken')
 
     resetRouter()
 

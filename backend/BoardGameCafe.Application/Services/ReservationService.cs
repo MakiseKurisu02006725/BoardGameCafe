@@ -129,6 +129,45 @@ public class ReservationService : IReservationService
     }
 
     /// <inheritdoc />
+    public Task<ReservationDto> GetById(Guid id)
+    {
+        var reservation = _unitOfWork.Reservations.GetById(id);
+        if (reservation == null)
+        {
+            throw new NotFoundException("预约不存在");
+        }
+
+        var dto = _mapper.Map<ReservationDto>(reservation);
+
+        var member = _unitOfWork.Members.GetById(dto.MemberId);
+        dto.MemberName = member?.NickName ?? "未知";
+        if (dto.TableId.HasValue)
+        {
+            var table = _unitOfWork.Tables.GetById(dto.TableId.Value);
+            dto.TableCode = table?.Code;
+        }
+
+        dto.TableTypeName = dto.TableType switch
+        {
+            TableArea.Hall => "大厅",
+            TableArea.PrivateRoom => "包间",
+            TableArea.Booth => "卡座",
+            _ => "未知"
+        };
+        dto.StatusName = dto.Status switch
+        {
+            ReservationStatus.Pending => "待确认",
+            ReservationStatus.Confirmed => "已确认",
+            ReservationStatus.Completed => "已完成",
+            ReservationStatus.Cancelled => "已取消",
+            ReservationStatus.Expired => "已过期",
+            _ => "未知"
+        };
+
+        return Task.FromResult(dto);
+    }
+
+    /// <inheritdoc />
     public Task<ReservationDto> Create(CreateReservationDto dto, Guid memberId)
     {
         // TODO: 实现创建预约逻辑

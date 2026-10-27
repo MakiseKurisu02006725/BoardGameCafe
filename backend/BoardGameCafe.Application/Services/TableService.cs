@@ -452,11 +452,12 @@ public class TableService : ITableService
             discount += Math.Round(order.TotalAmount * (1m - order.DiscountRate / 10m), 2);
         }
 
-        // 处理优惠券
+        // 处理优惠券（安全校验：归属当前订单会员且未过期）
         if (dto.CouponId.HasValue)
         {
             var coupon = _unitOfWork.Coupons.GetById(dto.CouponId.Value);
-            if (coupon != null && !coupon.IsUsed && order.TotalAmount >= coupon.MinAmount)
+            if (coupon != null && !coupon.IsUsed && order.TotalAmount >= coupon.MinAmount
+                && coupon.MemberId == order.MemberId && coupon.ExpireDate >= DateTime.Now)
             {
                 coupon.IsUsed = true;
                 coupon.UsedOrderId = order.Id;
@@ -465,8 +466,8 @@ public class TableService : ITableService
             }
         }
 
-        // 处理积分抵扣（100积分 = 1元）
-        if (dto.PointsDeduct.HasValue && order.MemberId.HasValue)
+        // 处理积分抵扣（100积分 = 1元）（安全校验：数量必须为正且不超过会员持有积分，防负数刷积分）
+        if (dto.PointsDeduct.HasValue && dto.PointsDeduct.Value > 0 && order.MemberId.HasValue)
         {
             var member = _unitOfWork.Members.GetById(order.MemberId.Value);
             if (member != null && member.Points >= dto.PointsDeduct.Value)
@@ -501,17 +502,18 @@ public class TableService : ITableService
             balanceDeduct = remaining;
             discount += balanceDeduct;
         }
-        else if (dto.BalanceDeduct.HasValue && order.MemberId.HasValue)
+        else if (dto.BalanceDeduct.HasValue && dto.BalanceDeduct.Value > 0 && order.MemberId.HasValue)
         {
-            // 混合支付中的余额抵扣（微信/支付宝/现金 + 余额）：抵扣金额不超过会员余额
+            // 混合支付中的余额抵扣（微信/支付宝/现金 + 余额）：抵扣金额必须为正且不超过会员余额（防负数刷余额）
             var member = _unitOfWork.Members.GetById(order.MemberId.Value);
-            if (member != null && member.Balance >= dto.BalanceDeduct.Value)
+            if (member != null && member.Balance > 0)
             {
-                member.Balance -= dto.BalanceDeduct.Value;
+                var deduct = Math.Min(dto.BalanceDeduct.Value, member.Balance);
+                member.Balance -= deduct;
                 member.UpdatedAt = now;
                 _unitOfWork.Members.Update(member);
-                AddBalanceRecord(member.Id, -dto.BalanceDeduct.Value, order.Id, $"消费扣款 订单号{order.OrderNo}");
-                balanceDeduct = dto.BalanceDeduct.Value;
+                AddBalanceRecord(member.Id, -deduct, order.Id, $"消费扣款 订单号{order.OrderNo}");
+                balanceDeduct = deduct;
                 discount += balanceDeduct;
             }
         }

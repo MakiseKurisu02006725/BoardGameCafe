@@ -7,7 +7,7 @@ const REFRESH_KEY = 'bgc_refresh_token'
  * @returns {string} Token字符串
  */
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || ''
+  return sessionStorage.getItem(TOKEN_KEY) || ''
 }
 
 /**
@@ -15,14 +15,14 @@ export function getToken() {
  * @param {string} token - Token字符串
  */
 export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
+  sessionStorage.setItem(TOKEN_KEY, token)
 }
 
 /**
  * 移除访问Token
  */
 export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  sessionStorage.removeItem(TOKEN_KEY)
 }
 
 /**
@@ -30,7 +30,7 @@ export function removeToken() {
  * @returns {string} 刷新Token字符串
  */
 export function getRefreshToken() {
-  return localStorage.getItem(REFRESH_KEY) || ''
+  return sessionStorage.getItem(REFRESH_KEY) || ''
 }
 
 /**
@@ -38,14 +38,14 @@ export function getRefreshToken() {
  * @param {string} refreshToken - 刷新Token字符串
  */
 export function setRefreshToken(refreshToken) {
-  localStorage.setItem(REFRESH_KEY, refreshToken)
+  sessionStorage.setItem(REFRESH_KEY, refreshToken)
 }
 
 /**
  * 移除刷新Token
  */
 export function removeRefreshToken() {
-  localStorage.removeItem(REFRESH_KEY)
+  sessionStorage.removeItem(REFRESH_KEY)
 }
 
 /**

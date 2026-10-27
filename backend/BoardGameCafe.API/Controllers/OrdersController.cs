@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using BoardGameCafe.Application.DTOs;
 using BoardGameCafe.Application.Services;
 using BoardGameCafe.Common;
+using BoardGameCafe.Core.Entities;
+using BoardGameCafe.Core.Enums;
+using BoardGameCafe.Core.Interfaces;
 
 namespace BoardGameCafe.API.Controllers;
 
@@ -16,14 +19,43 @@ namespace BoardGameCafe.API.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IUnitOfWork _unitOfWork;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="orderService">订单服务</param>
-    public OrdersController(IOrderService orderService)
+    /// <param name="unitOfWork">工作单元</param>
+    public OrdersController(IOrderService orderService, IUnitOfWork unitOfWork)
     {
         _orderService = orderService;
+        _unitOfWork = unitOfWork;
+    }
+
+    /// <summary>
+    /// 当前登录用户是否为员工（非会员）
+    /// </summary>
+    private bool IsStaff
+    {
+        get
+        {
+            var roleClaim = User.FindFirst(ClaimTypes.Role);
+            return roleClaim != null && roleClaim.Value != UserRole.Member.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 获取当前会员角色登录用户对应的会员Id（员工返回null）
+    /// </summary>
+    private Guid? GetCurrentMemberId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return null;
+        }
+
+        return _unitOfWork.Members.Find(m => m.UserId == userId).FirstOrDefault()?.Id;
     }
 
     /// <summary>
@@ -37,6 +69,12 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PagedApiResponse<OrderDto>>> GetOrders([FromQuery] OrderQueryParams queryParams)
     {
+        // 防水平越权：会员角色只能查询自己的订单
+        if (!IsStaff)
+        {
+            queryParams.RestrictMemberId = GetCurrentMemberId();
+        }
+
         var result = await _orderService.GetPagedList(queryParams);
         return Ok(PagedApiResponse<OrderDto>.Success(result, "查询成功"));
     }
@@ -54,6 +92,17 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<ApiResponse<OrderDetailDto>>> GetOrderById([FromRoute] Guid id)
     {
         var result = await _orderService.GetDetail(id);
+
+        // 防水平越权：会员角色只能查看自己的订单
+        if (!IsStaff)
+        {
+            var memberId = GetCurrentMemberId();
+            if (!result.MemberId.HasValue || result.MemberId != memberId)
+            {
+                return NotFound(ApiResponse.Fail("订单不存在", 404));
+            }
+        }
+
         return Ok(ApiResponse<OrderDetailDto>.Success(result, "查询成功"));
     }
 
@@ -70,6 +119,17 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse<OrderDetailDto>>> Pay([FromBody] PaymentDto dto)
     {
+        // 防水平越权：会员角色只能支付自己的订单
+        if (!IsStaff)
+        {
+            var memberId = GetCurrentMemberId();
+            var order = _unitOfWork.Orders.Find(o => o.Id == dto.OrderId).FirstOrDefault();
+            if (order == null || !order.MemberId.HasValue || order.MemberId != memberId)
+            {
+                return NotFound(ApiResponse.Fail("订单不存在", 404));
+            }
+        }
+
         var result = await _orderService.Pay(dto);
         return Ok(ApiResponse<OrderDetailDto>.Success(result, "支付成功"));
     }

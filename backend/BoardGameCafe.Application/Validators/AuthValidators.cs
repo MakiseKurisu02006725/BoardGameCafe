@@ -17,9 +17,9 @@ public class LoginDtoValidator : AbstractValidator<LoginDto>
             .NotEmpty().WithMessage("手机号码不能为空")
             .Matches(@"^1[3-9]\d{9}$").WithMessage("请输入正确的手机号码格式");
 
+        // 登录仅校验非空：不限制长度，避免历史短密码账号无法登录
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("密码不能为空")
-            .Length(6, 20).WithMessage("密码长度必须为6-20位");
+            .NotEmpty().WithMessage("密码不能为空");
     }
 }
 
@@ -39,7 +39,7 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("密码不能为空")
-            .Length(6, 20).WithMessage("密码长度必须为6-20位");
+            .Length(8, 20).WithMessage("密码长度必须为8-20位");
 
         RuleFor(x => x.NickName)
             .NotEmpty().WithMessage("昵称不能为空")

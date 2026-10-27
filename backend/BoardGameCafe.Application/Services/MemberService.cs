@@ -272,7 +272,14 @@ public class MemberService : IMemberService
             throw new NotFoundException("会员不存在");
         }
 
-        var bonus = dto.Bonus ?? CalculateBonus(dto.Amount);
+        // 安全校验：充值金额必须为正数（防负数/零充值刷余额）
+        if (dto.Amount <= 0)
+        {
+            throw new BusinessException("充值金额必须大于0");
+        }
+
+        // 安全加固：赠送金额由服务端按阶梯规则计算，不信任前端传入的 Bonus（防任意充值赠送刷余额）
+        var bonus = CalculateBonus(dto.Amount);
         var now = DateTime.Now;
 
         member.Balance += dto.Amount + bonus;

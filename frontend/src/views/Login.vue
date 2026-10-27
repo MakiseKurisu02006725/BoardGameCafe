@@ -82,7 +82,7 @@
               <el-input
                 v-model="registerForm.password"
                 type="password"
-                placeholder="请输入密码 (6-20位)"
+                placeholder="请输入密码 (8-20位)"
                 :prefix-icon="Lock"
                 show-password
                 maxlength="20"
@@ -184,8 +184,7 @@ const loginRules = {
     { required: true, validator: isPhone, trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+    { required: true, message: '请输入密码', trigger: 'blur' }
   ]
 }
 
@@ -199,7 +198,7 @@ const registerRules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, validator: validateConfirmPassword, trigger: 'blur' }

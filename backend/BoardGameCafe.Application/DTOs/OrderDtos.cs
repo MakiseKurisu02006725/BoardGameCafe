@@ -211,6 +211,11 @@ public class OrderQueryParams : PaginationParams
     /// 会员手机号筛选（模糊匹配）
     /// </summary>
     public string? MemberPhone { get; set; }
+
+    /// <summary>
+    /// 服务端内部使用：按会员Id强制过滤（防水平越权，会员角色只能查询自己的订单）
+    /// </summary>
+    public Guid? RestrictMemberId { get; set; }
 }
 
 /// <summary>

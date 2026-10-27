@@ -31,6 +31,7 @@ public class TablesController : ControllerBase
     /// </summary>
     /// <returns>桌位列表</returns>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<List<TableDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<List<TableDto>>>> GetTables()
     {
@@ -44,6 +45,7 @@ public class TablesController : ControllerBase
     /// <param name="id">桌位Id</param>
     /// <returns>桌位详情</returns>
     [HttpGet("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<TableDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<TableDto>>> GetTableById([FromRoute] Guid id)

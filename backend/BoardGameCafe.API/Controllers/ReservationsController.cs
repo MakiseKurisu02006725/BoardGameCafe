@@ -45,10 +45,20 @@ public class ReservationsController : ControllerBase
 
         if (!isStaff)
         {
+            // 会员只能查看自己的预约：通过 userId 解析真实会员Id（MemberId 是 Member 表主键，不能用 User.Id）
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var memberId))
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
             {
-                queryParams.MemberId = memberId;
+                var member = _unitOfWork.Members.Find(m => m.UserId == userId).FirstOrDefault();
+                if (member != null)
+                {
+                    queryParams.MemberId = member.Id;
+                }
+                else
+                {
+                    // 会员账号未关联会员记录时返回空列表
+                    queryParams.MemberId = Guid.Empty;
+                }
             }
         }
 
@@ -69,8 +79,24 @@ public class ReservationsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<ReservationDto>>> GetReservationById([FromRoute] Guid id)
     {
-        var result = await _reservationService.GetPagedList(new ReservationQueryParams { PageIndex = 1, PageSize = 1 });
-        return Ok(ApiResponse<ReservationDto>.Success(result.Items.FirstOrDefault()!, "查询成功"));
+        var result = await _reservationService.GetById(id);
+
+        // 防水平越权：会员只能查看自己的预约
+        var roleClaim = User.FindFirst(ClaimTypes.Role);
+        var isStaff = roleClaim != null && roleClaim.Value != UserRole.Member.ToString();
+        if (!isStaff)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var member = userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)
+                ? _unitOfWork.Members.Find(m => m.UserId == userId).FirstOrDefault()
+                : null;
+            if (member == null || result.MemberId != member.Id)
+            {
+                return NotFound(ApiResponse.Fail("预约不存在", 404));
+            }
+        }
+
+        return Ok(ApiResponse<ReservationDto>.Success(result, "查询成功"));
     }
 
     /// <summary>
@@ -278,6 +304,22 @@ public class ReservationsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResponse>> Cancel([FromRoute] Guid id)
     {
+        // 防水平越权：会员只能取消自己的预约
+        var roleClaim = User.FindFirst(ClaimTypes.Role);
+        var isStaff = roleClaim != null && roleClaim.Value != UserRole.Member.ToString();
+        if (!isStaff)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var member = userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)
+                ? _unitOfWork.Members.Find(m => m.UserId == userId).FirstOrDefault()
+                : null;
+            var reservation = _unitOfWork.Reservations.GetById(id);
+            if (member == null || reservation == null || reservation.MemberId != member.Id)
+            {
+                return NotFound(ApiResponse.Fail("预约不存在", 404));
+            }
+        }
+
         await _reservationService.Cancel(id);
         return Ok(ApiResponse.Success("取消成功"));
     }

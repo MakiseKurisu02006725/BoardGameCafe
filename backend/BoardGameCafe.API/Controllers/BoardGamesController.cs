@@ -32,6 +32,7 @@ public class BoardGamesController : ControllerBase
     /// <param name="queryParams">查询参数</param>
     /// <returns>桌游分页列表</returns>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(PagedApiResponse<BoardGameDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedApiResponse<BoardGameDto>>> GetBoardGames([FromQuery] GameQueryParams queryParams)
     {
@@ -45,6 +46,7 @@ public class BoardGamesController : ControllerBase
     /// <param name="id">桌游Id</param>
     /// <returns>桌游详情</returns>
     [HttpGet("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(ApiResponse<BoardGameDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<BoardGameDto>>> GetBoardGameById([FromRoute] Guid id)
@@ -111,6 +113,7 @@ public class BoardGamesController : ControllerBase
     /// </summary>
     /// <returns>借出中桌游列表</returns>
     [HttpGet("borrowed")]
+    [Authorize(Roles = "Admin,Manager,Cashier")]
     [ProducesResponseType(typeof(ApiResponse<List<BorrowedGameDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<List<BorrowedGameDto>>>> GetBorrowedGames()
     {

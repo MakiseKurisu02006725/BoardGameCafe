@@ -99,6 +99,11 @@ public class UserService : IUserService
             throw new BusinessException("用户名已存在");
         }
 
+        if (!PasswordHelper.ValidatePasswordStrength(dto.Password))
+        {
+            throw new BusinessException("密码强度不足，至少6位");
+        }
+
         var now = DateTime.Now;
         var user = _mapper.Map<User>(dto);
         user.Id = Guid.NewGuid();

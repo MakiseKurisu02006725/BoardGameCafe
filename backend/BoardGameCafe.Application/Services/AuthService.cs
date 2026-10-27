@@ -48,16 +48,33 @@ public class AuthService : IAuthService
     /// <inheritdoc />
     public Task<LoginResponseDto> Login(LoginDto dto)
     {
+        // 安全校验：空密码直接拒绝（避免 PasswordHelper 对空字符串抛异常返回 500）
+        if (string.IsNullOrWhiteSpace(dto.Password))
+        {
+            throw new BusinessException("手机号或密码错误");
+        }
+
+        // 暴力破解防护：同一手机号连续失败锁定（锁定期间直接拒绝）
+        if (_loginFailures.TryGetValue(dto.Phone, out var lockEntry) && lockEntry.LockUntil > DateTime.Now)
+        {
+            throw new BusinessException("尝试次数过多，请15分钟后再试");
+        }
+
         var user = _unitOfWork.Users.Find(u => u.Phone == dto.Phone && !u.IsDeleted).FirstOrDefault();
         if (user == null)
         {
+            RecordLoginFailure(dto.Phone);
             throw new BusinessException("手机号或密码错误");
         }
 
         if (!PasswordHelper.VerifyPassword(dto.Password, user.PasswordHash))
         {
+            RecordLoginFailure(dto.Phone);
             throw new BusinessException("手机号或密码错误");
         }
+
+        // 登录成功：清除该手机号的失败记录
+        _loginFailures.TryRemove(dto.Phone, out _);
 
         var member = _unitOfWork.Members.Find(m => m.UserId == user.Id).FirstOrDefault();
         var nickName = member?.NickName ?? user.UserName;
@@ -76,6 +93,40 @@ public class AuthService : IAuthService
             Role = user.Role.ToString(),
             NickName = nickName
         });
+    }
+
+    // 登录失败计数：手机号 -> (连续失败次数, 锁定截止时间)
+    private sealed class LoginFailure
+    {
+        public int Count { get; set; }
+        public DateTime LockUntil { get; set; }
+    }
+
+    private static readonly ConcurrentDictionary<string, LoginFailure> _loginFailures = new();
+
+    /// <summary>
+    /// 记录一次登录失败，连续失败达到阈值后锁定
+    /// </summary>
+    private static void RecordLoginFailure(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            return;
+        }
+
+        if (_loginFailures.TryGetValue(phone, out var entry))
+        {
+            entry.Count++;
+            if (entry.Count >= 5)
+            {
+                entry.LockUntil = DateTime.Now.AddMinutes(15);
+                entry.Count = 0;
+            }
+        }
+        else
+        {
+            _loginFailures.TryAdd(phone, new LoginFailure { Count = 1 });
+        }
     }
 
     /// <inheritdoc />
@@ -180,8 +231,15 @@ public class AuthService : IAuthService
     /// <inheritdoc />
     public Task Logout(Guid userId)
     {
-        // TODO: 实现登出逻辑
-        // 1. 清除/失效该用户的RefreshToken
+        // 登出时移除该用户的所有刷新令牌，使其立即失效（防登出后令牌仍可用）
+        var tokens = _refreshTokenStore
+            .Where(kv => kv.Value.UserId == userId)
+            .Select(kv => kv.Key)
+            .ToList();
+        foreach (var token in tokens)
+        {
+            _refreshTokenStore.TryRemove(token, out _);
+        }
 
         return Task.CompletedTask;
     }

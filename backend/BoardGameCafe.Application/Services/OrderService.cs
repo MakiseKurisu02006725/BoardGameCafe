@@ -80,6 +80,13 @@ public class OrderService : IOrderService
             query = query.Where(o => o.MemberId.HasValue && memberIds.Contains(o.MemberId.Value));
         }
 
+        // 防水平越权：服务端强制按会员Id过滤（会员角色只能查看自己的订单）
+        if (queryParams.RestrictMemberId.HasValue)
+        {
+            var restrictId = queryParams.RestrictMemberId.Value;
+            query = query.Where(o => o.MemberId == restrictId);
+        }
+
         var totalCount = query.Count();
         var orders = query
             .OrderByDescending(o => o.CreatedAt)
@@ -169,11 +176,12 @@ public class OrderService : IOrderService
             totalDiscount += Math.Round(order.TotalAmount * (1m - order.DiscountRate / 10m), 2);
         }
 
-        // 1. 处理优惠券
+        // 1. 处理优惠券（安全校验：归属当前订单会员且未过期，防越权使用他人/过期券）
         if (dto.CouponId.HasValue)
         {
             var coupon = _unitOfWork.Coupons.GetById(dto.CouponId.Value);
-            if (coupon != null && !coupon.IsUsed)
+            if (coupon != null && !coupon.IsUsed && coupon.ExpireDate >= DateTime.Now
+                && coupon.MemberId == order.MemberId)
             {
                 if (coupon.MinAmount > 0 && order.TotalAmount < coupon.MinAmount)
                 {

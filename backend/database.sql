@@ -6,13 +6,14 @@
 -- =====================================================
 
 -- 1. 创建数据库（如果不存在）
+-- 注意：FILENAME 路径为占位符，请按部署环境替换为真实数据文件目录
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'BoardGameCafe')
 BEGIN
     CREATE DATABASE [BoardGameCafe]
     ON PRIMARY
     (
         NAME = N'BoardGameCafe_Data',
-        FILENAME = N'D:\SQLServer\BoardGameCafe_Data.mdf',
+        FILENAME = N'<数据库文件目录>\BoardGameCafe_Data.mdf',
         SIZE = 10MB,
         MAXSIZE = UNLIMITED,
         FILEGROWTH = 10%
@@ -20,7 +21,7 @@ BEGIN
     LOG ON
     (
         NAME = N'BoardGameCafe_Log',
-        FILENAME = N'D:\SQLServer\BoardGameCafe_Log.ldf',
+        FILENAME = N'<数据库文件目录>\BoardGameCafe_Log.ldf',
         SIZE = 5MB,
         MAXSIZE = UNLIMITED,
         FILEGROWTH = 10%

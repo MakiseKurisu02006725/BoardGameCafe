@@ -262,8 +262,8 @@ router.beforeEach(async (to, from, next) => {
         userStore.refreshToken = ''
         userStore.rolesLoaded = false
         userStore.routes = []
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
+        sessionStorage.removeItem('token')
+        sessionStorage.removeItem('refreshToken')
         resetRouter()
         next(`/login?redirect=${encodeURIComponent(realFullPath)}`)
         return
@@ -295,8 +295,8 @@ router.beforeEach(async (to, from, next) => {
       userStore.refreshToken = ''
       userStore.rolesLoaded = false
       userStore.routes = []
-      localStorage.removeItem('token')
-      localStorage.removeItem('refreshToken')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('refreshToken')
       resetRouter()
       next(`/login?redirect=${encodeURIComponent(to.fullPath)}`)
       return

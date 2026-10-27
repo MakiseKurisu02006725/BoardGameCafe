@@ -94,11 +94,23 @@ public class Program
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", policy =>
+                // CORS 白名单可配置（Cors:AllowedOrigins），未配置时保持全放行以兼容现有部署
+                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                                     ?? Array.Empty<string>();
+                options.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
+                    if (allowedOrigins.Length > 0)
+                    {
+                        policy.WithOrigins(allowedOrigins)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    }
+                    else
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    }
                 });
             });
 
@@ -204,13 +216,27 @@ public class Program
 
             app.UseSerilogRequestLogging();
 
-            app.UseCors("AllowAll");
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            // 安全响应头（防点击劫持 / MIME 嗅探 / 信息泄露）
+            app.Use(async (context, next) =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "BoardGameCafe API v1");
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+                context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+                context.Response.Headers["Referrer-Policy"] = "no-referrer";
+                await next();
             });
+
+            app.UseCors("CorsPolicy");
+
+            // Swagger 仅开发环境开放（生产隐藏接口文档）
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BoardGameCafe API v1");
+                });
+            }
 
             app.UseRouting();
 

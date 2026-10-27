@@ -4,8 +4,8 @@ import { resetRouter } from '@/router'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: localStorage.getItem('token') || '',
-    refreshToken: localStorage.getItem('refreshToken') || '',
+    token: sessionStorage.getItem('token') || '',
+    refreshToken: sessionStorage.getItem('refreshToken') || '',
     userId: '',
     memberId: '',
     userName: '',
@@ -27,16 +27,16 @@ export const useUserStore = defineStore('user', {
       const data = await authApi.login({ phone, password })
       this.token = data.accessToken
       this.refreshToken = data.refreshToken
-      localStorage.setItem('token', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
+      sessionStorage.setItem('token', data.accessToken)
+      sessionStorage.setItem('refreshToken', data.refreshToken)
       return data
     },
     async register(payload) {
       const data = await authApi.register(payload)
       this.token = data.accessToken
       this.refreshToken = data.refreshToken
-      localStorage.setItem('token', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
+      sessionStorage.setItem('token', data.accessToken)
+      sessionStorage.setItem('refreshToken', data.refreshToken)
       return data
     },
     async getUserInfo() {
@@ -62,8 +62,8 @@ export const useUserStore = defineStore('user', {
       this.avatar = ''
       this.routes = []
       this.rolesLoaded = false
-      localStorage.removeItem('token')
-      localStorage.removeItem('refreshToken')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('refreshToken')
       resetRouter()
 
       // fire-and-forget：后端logout通知失败也没关系（本地已经全清了）
@@ -78,8 +78,8 @@ export const useUserStore = defineStore('user', {
         const data = await authApi.refreshToken(this.refreshToken)
         this.token = data.accessToken
         this.refreshToken = data.refreshToken
-        localStorage.setItem('token', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
+        sessionStorage.setItem('token', data.accessToken)
+        sessionStorage.setItem('refreshToken', data.refreshToken)
         return data
       } catch (e) {
         this.logout()
@@ -88,7 +88,7 @@ export const useUserStore = defineStore('user', {
     },
     setToken(token) {
       this.token = token
-      localStorage.setItem('token', token)
+      sessionStorage.setItem('token', token)
     }
   }
 })

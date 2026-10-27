@@ -16,6 +16,13 @@ public interface IReservationService
     Task<PagedResult<ReservationDto>> GetPagedList(ReservationQueryParams queryParams);
 
     /// <summary>
+    /// 获取预约详情
+    /// </summary>
+    /// <param name="id">预约Id</param>
+    /// <returns>预约信息DTO</returns>
+    Task<ReservationDto> GetById(Guid id);
+
+    /// <summary>
     /// 创建预约（冲突检测）
     /// </summary>
     /// <param name="dto">创建预约请求DTO</param>
