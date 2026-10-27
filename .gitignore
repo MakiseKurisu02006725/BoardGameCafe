@@ -76,3 +76,6 @@ PROJECT_GUIDE.md
 backend/build-log.txt
 backend/build2.txt
 backend/ok.txt
+
+# ---------- 9. AI 助手本地工作区（记忆/会话数据，勿入库） ----------
+.workbuddy/
